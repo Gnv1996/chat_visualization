@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { Button, MenuItem, Select, TextField } from '@mui/material';
+import { Button, MenuItem, Select, TextField, IconButton } from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
 import axiosInstance from '../../utils/axios';
 import Draggable from 'react-draggable';
 import BarChartCom from '../../components/barChart/BarChart';
@@ -10,6 +11,8 @@ import Loader from '../../components/loader/Loader';
 import { Bounce, ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PieChartComponent from '../../components/Pie/PieChartComponent';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const optionData = [
   { id: 1, value: 'Bar-Chart' },
@@ -88,6 +91,17 @@ const Dashboard = () => {
     setData(updatedData);
   };
 
+  const downloadPDF = async () => {
+    const input = document.getElementById('dashboard-content');
+    const canvas = await html2canvas(input);
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF();
+    const imgWidth = 250;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    pdf.save('dashboard.pdf');
+  };
+
   return (
     <Box>
       <ToastContainer />
@@ -96,13 +110,19 @@ const Dashboard = () => {
           backgroundColor: '#918e8e',
           color: '#fff',
           padding: '4px 15px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
         <Typography variant="h1" fontSize={'28px'} py={2} fontWeight={600}>
           Chat - Visualization
         </Typography>
+        <IconButton onClick={downloadPDF} color="inherit">
+          <DownloadIcon />
+        </IconButton>
       </header>
-      <Box maxWidth={'1200px'} mx={'auto'}>
+      <Box id="dashboard-content" maxWidth={'1200px'} mx={'auto'}>
         <Box
           display={'flex'}
           alignItems={'center'}

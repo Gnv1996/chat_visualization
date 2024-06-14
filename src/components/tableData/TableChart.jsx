@@ -112,13 +112,13 @@ const TableChart = ({
         <Box>
           <Select
             sx={{ width: "100px" }}
-            value={chartType}
+            value={chartType || ''}
             displayEmpty
             size="small"
             onChange={(e) => handleInsideSelect(e, id)}
           >
             <MenuItem value="" disabled>
-              --- Choose Type ---
+            Select
             </MenuItem>
             {optionData.map((option) => (
               <MenuItem
