@@ -114,8 +114,8 @@ const Dashboard = () => {
       format: [imgWidth, imgHeight] 
     });
   
-    const marginTop = 50; 
-    const marginLeft = 8; 
+    const marginTop = 5; 
+    const marginLeft = 1; 
   
     const xPos = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
     let yPos = marginTop;
@@ -153,9 +153,12 @@ const Dashboard = () => {
         <Typography variant="h1" fontSize={'28px'} py={2} fontWeight={600}>
           Chat - Visualization
         </Typography>
-        <IconButton onClick={downloadPDF} color="inherit">
-          <DownloadIcon />
-        </IconButton>
+
+        {data.length > 0 && (
+          <IconButton onClick={downloadPDF} color="inherit">
+            <DownloadIcon />
+          </IconButton>
+        )}
       </header>
       <Box id="dashboard-content" maxWidth={'1200px'} mx={'auto'}>
         <Box
