@@ -20,19 +20,15 @@ const optionData = [
   { id: 3, value: 'Pie-Chart' },
 ];
 
-
 const Dashboard = () => {
   const [promptText, setPromptText] = useState({
     inputValue: '',
     selectedValue: '',
   });
   const [data, setData] = useState([]);
-  const [resData, setResData] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showLoading, setShowLoading] = useState(false);
   const [chartType, setChartType] = useState({});
-
-
 
   const handleInputChange = (event, name) => {
     const { value } = event.target;
@@ -63,9 +59,7 @@ const Dashboard = () => {
           },
         }
       );
-      console.log(response.data,"response.data");
       setData((prevData) => [...prevData, response.data]);
-      setResData(response.data);
       setIsLoading(false);
     } catch (error) {
       console.error('Error:', error.response);
@@ -90,18 +84,44 @@ const Dashboard = () => {
       .filter((item) => item.length > 0);
     setData(updatedData);
   };
-
   const downloadPDF = async () => {
     const input = document.getElementById('dashboard-content');
     const canvas = await html2canvas(input);
     const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF();
-    const imgWidth = 250;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+    
+    const imgWidth = 210; 
+    const pageHeight = imgWidth * 1.414; 
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    
+    const marginTop = 50; 
+    const marginLeft = 10; 
+
+   
+    const xPos = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
+    let yPos = marginTop;
+
+
+    pdf.addImage(imgData, 'PNG', xPos + marginLeft, yPos, imgWidth, imgHeight);
+
+
+    let remainingHeight = pageHeight - yPos - imgHeight;
+    let currentPage = 1;
+
+    while (remainingHeight < 0) {
+      pdf.addPage();
+      currentPage++;
+      yPos = marginTop - (pageHeight * (currentPage - 1));
+      pdf.addImage(imgData, 'PNG', xPos + marginLeft, yPos, imgWidth, imgHeight);
+      remainingHeight = pageHeight - yPos - imgHeight;
+    }
+
+    // Save PDF
     pdf.save('dashboard.pdf');
   };
-
   return (
     <Box>
       <ToastContainer />
@@ -198,18 +218,19 @@ const Dashboard = () => {
                     scale={1}
                   >
                     <Box className="handle">
-                      {promptText.selectedValue === 'Pie-Chart' ? (
+                      {promptText.selectedValue === 'Pie-Chart' ||
+                      chartType[innerItem.uuid] === 'Pie-Chart' ? (
                         <PieChartComponent
-                        data={innerItem}
+                          data={innerItem}
                           key={innerIndex}
                           id={innerItem.uuid}
-                          handleInputChange={handleInputChange}
-                          optionData={optionData}
-                          promptText={promptText}
                           handleDelete={handleDelete}
+                          handleInsideSelect={handleInsideSelect}
+                          optionData={optionData}
+                          chartType={chartType[innerItem.uuid]}
                         />
                       ) : (promptText.selectedValue === 'Bar-Chart' ||
-                        chartType[innerItem.uuid] === 'Bar-Chart') ? (
+                          chartType[innerItem.uuid] === 'Bar-Chart') ? (
                         <BarChartCom
                           data={innerItem}
                           id={innerItem.uuid}
@@ -220,37 +241,38 @@ const Dashboard = () => {
                         />
                       ) : (
                         (promptText.selectedValue === 'Table' ||
-                          chartType[innerItem.uuid] === 'Table') &&
-                        Object.keys(innerItem).map((key) => {
-                          if (key !== 'uuid') {
-                            return (
-                              <Box
-                                key={key}
-                                my={4}
-                                maxWidth={'1200px'}
-                                mx={'auto'}
-                              >
-                                <Typography
-                                  variant="h2"
-                                  fontSize={'24px'}
-                                  fontWeight={'600'}
-                                  pb={2}
+                          chartType[innerItem.uuid] === 'Table') && (
+                          Object.keys(innerItem).map((key) => {
+                            if (key !== 'uuid') {
+                              return (
+                                <Box
+                                  key={key}
+                                  my={4}
+                                  maxWidth={'1200px'}
+                                  mx={'auto'}
                                 >
-                                  {key}
-                                </Typography>
-                                <TableChart
-                                  userData={innerItem[key]}
-                                  id={innerItem.uuid}
-                                  handleDelete={handleDelete}
-                                  handleInsideSelect={handleInsideSelect}
-                                  optionData={optionData}
-                                  chartType={chartType[innerItem.uuid]}
-                                />
-                              </Box>
-                            );
-                          }
-                          return null;
-                        })
+                                  <Typography
+                                    variant="h2"
+                                    fontSize={'24px'}
+                                    fontWeight={'600'}
+                                    pb={2}
+                                  >
+                                    {key}
+                                  </Typography>
+                                  <TableChart
+                                    userData={innerItem[key]}
+                                    id={innerItem.uuid}
+                                    handleDelete={handleDelete}
+                                    handleInsideSelect={handleInsideSelect}
+                                    optionData={optionData}
+                                    chartType={chartType[innerItem.uuid]}
+                                  />
+                                </Box>
+                              );
+                            }
+                            return null;
+                          })
+                        )
                       )}
                     </Box>
                   </Draggable>

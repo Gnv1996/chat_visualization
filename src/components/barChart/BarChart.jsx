@@ -20,7 +20,7 @@ const BarChartCom = ({
   chartType,
 }) => {
   const dataType = Object.keys(data)[0];
-  let xAxis, yAxis, tooltipContent, barData;
+  let xAxis, yAxis, tooltipContent, barData, title;
 
   console.log(data, "##################3");
 
@@ -55,6 +55,7 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="UnitPrice" fill="#8884d8" />;
+      title = "Order Data";
       break;
     case "Customers":
       xAxis = <XAxis dataKey="CustomerID" />;
@@ -88,6 +89,7 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="PostalCode" fill="#8884d8" />;
+      title = "Customer Data";
       break;
     case "Employees":
       xAxis = <XAxis dataKey="EmployeeID" />;
@@ -126,6 +128,7 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="Extension" fill="#8884d8" />;
+      title = "Employee Data";
       break;
     case "EmployeeTerritories":
       xAxis = <XAxis dataKey="EmployeeID" />;
@@ -151,6 +154,7 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="TerritoryID" fill="#8884d8" />;
+      title = "Employee Territories Data";
       break;
     case "Products":
       xAxis = <XAxis dataKey="ProductID" />;
@@ -187,6 +191,35 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="UnitPrice" fill="#8884d8" />;
+      title = "Product Data";
+      break;
+    case "sqlite_sequence":
+      xAxis = <XAxis dataKey="name" type="category" />;
+      yAxis = <YAxis dataKey="seq" type="number" />;
+      tooltipContent = (
+        <Tooltip
+          content={({ payload }) => {
+            if (payload && payload.length) {
+              const item = payload[0].payload;
+              const keysToShow = ["name", "seq"];
+
+              const tooltipContent = keysToShow.map((key) => (
+                <p key={key}>
+                  <strong>{key}:</strong> {item[key]}
+                </p>
+              ));
+              return (
+                <div style={{ backgroundColor: "#f7f2f2", padding: "5px" }}>
+                  {tooltipContent}
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+      );
+      barData = <Bar dataKey="seq" fill="#8884d8" />;
+      title = "SQLite Sequence Data";
       break;
     case "Regions":
       xAxis = <XAxis dataKey="RegionDescription" type="category" />;
@@ -214,6 +247,7 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="RegionID" fill="#8884d8" />;
+      title = "Region Data";
       break;
     case "Shippers":
       xAxis = <XAxis dataKey="CompanyName" type="category" />;
@@ -241,6 +275,34 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="ShipperID" fill="#8884d8" />;
+      title = "Shipper Data";
+      break;
+    case "Categories":
+      xAxis = <XAxis dataKey="CategoryName" type="category" />;
+      yAxis = <YAxis dataKey="CategoryID" type="number" />;
+      tooltipContent = (
+        <Tooltip
+          content={({ payload }) => {
+            if (payload && payload.length) {
+              const item = payload[0].payload;
+              const keysToShow = ["CategoryID", "CategoryName", "Description"];
+
+              return (
+                <div style={{ backgroundColor: "#f7f2f2", padding: "5px" }}>
+                  {keysToShow.map((key) => (
+                    <p key={key}>
+                      <strong>{key}:</strong> {item[key]}
+                    </p>
+                  ))}
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+      );
+      barData = <Bar dataKey="CategoryID" fill="#8884d8" />;
+      title = "Category Data";
       break;
     case "Territories":
       xAxis = <XAxis dataKey="CompanyName" type="category" />;
@@ -272,6 +334,73 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="RegionID" fill="#8884d8" />;
+      title = "Territory Data";
+      break;
+
+      case "Orders":
+      xAxis = <XAxis dataKey="OrderID" type="number" />;
+      yAxis = <YAxis dataKey="EmployeeID" type="number" />;
+      tooltipContent = (
+        <Tooltip
+          content={({ payload }) => {
+            if (payload && payload.length) {
+              const item = payload[0].payload;
+              const keysToShow = [
+                "OrderID",
+                "CustomerID",
+                "ShipAddress","ShipCountry","ShipName","ShipPostalCode","ShipRegion","ShippedDate","OrderDate"
+              ];
+
+              const tooltipContent = keysToShow.map((key) => (
+                <p key={key}>
+                  <strong>{key}:</strong> {item[key]}
+                </p>
+              ));
+              return (
+                <div style={{ backgroundColor: "#f7f2f2", padding: "5px" }}>
+                  {tooltipContent}
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+      );
+      barData = <Bar dataKey="OrderID" fill="#8884d8" />;
+      title = "Orders";
+      break;
+      
+      case "Suppliers":
+      xAxis = <XAxis dataKey="PostalCode" type="category" />;
+      yAxis = <YAxis dataKey="SupplierID" type="number" />;
+      tooltipContent = (
+        <Tooltip
+          content={({ payload }) => {
+            if (payload && payload.length) {
+              const item = payload[0].payload;
+              const keysToShow = [
+                "Region",
+                "PostalCode",
+                "SupplierID","Phone","Country"
+              ];
+
+              const tooltipContent = keysToShow.map((key) => (
+                <p key={key}>
+                  <strong>{key}:</strong> {item[key]}
+                </p>
+              ));
+              return (
+                <div style={{ backgroundColor: "#f7f2f2", padding: "5px" }}>
+                  {tooltipContent}
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+      );
+      barData = <Bar dataKey="SupplierID" fill="#8884d8" />;
+      title = "Supplier";
       break;
     case "KPIDefinitions":
       xAxis = <XAxis dataKey="RelevantDimensions" type="category" />;
@@ -304,11 +433,14 @@ const BarChartCom = ({
         />
       );
       barData = <Bar dataKey="KPIID" fill="#8884d8" />;
+      title = "KPI Definitions Data";
       break;
     default:
       // Handle default case
+      title = "Data";
       break;
   }
+
 
   const convertToCSV = (data) => {
     const csvRows = [];
@@ -341,6 +473,9 @@ const BarChartCom = ({
       <ResponsiveContainer width="100%" height={340}>
         <div style={{ display: "flex" }}>
           <div style={{ flex: 1, textAlign: "center" }}>
+            <Typography variant="h6" style={{ marginBottom: "10px" }}>
+              {title}
+            </Typography>
             <BarChart
               width={400}
               height={300}
@@ -353,7 +488,11 @@ const BarChartCom = ({
                 data.Regions ||
                 data.Shippers ||
                 data.Territories ||
-                data.KPIDefinitions
+                data.KPIDefinitions ||
+                data.sqlite_sequence ||
+                data.Categories ||
+                data.Orders ||
+                data.Suppliers
               }
               margin={{
                 top: 5,
