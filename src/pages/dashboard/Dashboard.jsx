@@ -36,6 +36,7 @@ const Dashboard = () => {
       ...prevState,
       [name]: value,
     }));
+    
   };
 
   const handleInsideSelect = (e, id) => {
@@ -76,8 +77,15 @@ const Dashboard = () => {
   const handlefetchData = async () => {
     setShowLoading(true);
     await fetchData();
+    clearInputValue();
+   
   };
-
+  const clearInputValue = () => {
+    setPromptText((prevState) => ({
+      ...prevState,
+      inputValue: '',
+    }));
+  };
   const handleDelete = (id) => {
     const updatedData = data
       .map((item) => item.filter((e) => e.uuid !== id))
@@ -88,40 +96,47 @@ const Dashboard = () => {
     const input = document.getElementById('dashboard-content');
     const canvas = await html2canvas(input);
     const imgData = canvas.toDataURL('image/png');
-
-    
-    const imgWidth = 210; 
-    const pageHeight = imgWidth * 1.414; 
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-
-    const pdf = new jsPDF('p', 'mm', 'a4');
-
-    
-    const marginTop = 50; 
-    const marginLeft = 10; 
-
+  
    
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+   
+    const maxImgWidth = screenWidth - 20; 
+  
+
+    const imgWidth = Math.min(210, maxImgWidth); 
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+  
+    const pdf = new jsPDF({
+      orientation: 'landscape', 
+      unit: 'mm', 
+      format: [imgWidth, imgHeight] 
+    });
+  
+    const marginTop = 50; 
+    const marginLeft = 8; 
+  
     const xPos = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
     let yPos = marginTop;
-
-
+  
     pdf.addImage(imgData, 'PNG', xPos + marginLeft, yPos, imgWidth, imgHeight);
-
-
-    let remainingHeight = pageHeight - yPos - imgHeight;
+  
+    let remainingHeight = pdf.internal.pageSize.getHeight() - yPos - imgHeight;
     let currentPage = 1;
-
+  
     while (remainingHeight < 0) {
       pdf.addPage();
       currentPage++;
-      yPos = marginTop - (pageHeight * (currentPage - 1));
+      yPos = marginTop - (pdf.internal.pageSize.getHeight() * (currentPage - 1));
       pdf.addImage(imgData, 'PNG', xPos + marginLeft, yPos, imgWidth, imgHeight);
-      remainingHeight = pageHeight - yPos - imgHeight;
+      remainingHeight = pdf.internal.pageSize.getHeight() - yPos - imgHeight;
     }
-
+  
     // Save PDF
     pdf.save('dashboard.pdf');
   };
+  
   return (
     <Box>
       <ToastContainer />
