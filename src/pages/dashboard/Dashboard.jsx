@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useRef,useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { Button, MenuItem, Select, TextField, IconButton } from '@mui/material';
@@ -29,6 +29,36 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showLoading, setShowLoading] = useState(false);
   const [chartType, setChartType] = useState({});
+
+
+  const [bounds, setBounds] = useState({
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  });
+
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const updateBounds = () => {
+      if (containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        setBounds({
+          left: 0,
+          right: window.innerWidth - containerRect.width - 190, 
+          top: 0,
+          bottom: containerRect.height, 
+        });
+      }
+     
+    };
+
+    updateBounds();
+    window.addEventListener('resize', updateBounds);
+    return () => window.removeEventListener('resize', updateBounds);
+  }, [data.length]);
+
 
   const handleInputChange = (event, name) => {
     const { value } = event.target;
@@ -97,17 +127,18 @@ const Dashboard = () => {
     const canvas = await html2canvas(input);
     const imgData = canvas.toDataURL('image/png');
   
-   
+  
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     
    
-    const maxImgWidth = screenWidth - 20; 
+    const maxImgWidth = screenWidth - 10; 
   
 
     const imgWidth = Math.min(210, maxImgWidth); 
     const imgHeight = canvas.height * imgWidth / canvas.width;
   
+    // Initialize PDF document
     const pdf = new jsPDF({
       orientation: 'landscape', 
       unit: 'mm', 
@@ -115,16 +146,16 @@ const Dashboard = () => {
     });
   
     const marginTop = 5; 
-    const marginLeft = 1; 
-  
+    const marginLeft = 0; 
+    
     const xPos = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
-    let yPos = marginTop;
+    let yPos = marginTop; 
   
     pdf.addImage(imgData, 'PNG', xPos + marginLeft, yPos, imgWidth, imgHeight);
   
     let remainingHeight = pdf.internal.pageSize.getHeight() - yPos - imgHeight;
     let currentPage = 1;
-  
+
     while (remainingHeight < 0) {
       pdf.addPage();
       currentPage++;
@@ -148,6 +179,7 @@ const Dashboard = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+      
         }}
       >
         <Typography variant="h1" fontSize={'28px'} py={2} fontWeight={600}>
@@ -160,7 +192,7 @@ const Dashboard = () => {
           </IconButton>
         )}
       </header>
-      <Box id="dashboard-content" maxWidth={'1200px'} mx={'auto'}>
+      <Box id="dashboard-content" maxWidth={'1200px'} mx={'auto'} ref={containerRef} position="relative">
         <Box
           display={'flex'}
           alignItems={'center'}
@@ -234,6 +266,7 @@ const Dashboard = () => {
                     defaultPosition={{ x: 0, y: 0 }}
                     position={null}
                     scale={1}
+                    bounds={bounds}  
                   >
                     <Box className="handle">
                       {promptText.selectedValue === 'Pie-Chart' ||
