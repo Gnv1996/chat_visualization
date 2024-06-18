@@ -1,4 +1,4 @@
-import React, { useState,useRef,useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { Button, MenuItem, Select, TextField, IconButton } from '@mui/material';
@@ -34,7 +34,7 @@ const Dashboard = () => {
   const [bounds, setBounds] = useState({
     left: 0,
     right: 0,
-    top: 0,
+    top: -500,
     bottom: 0,
   });
 
@@ -46,12 +46,11 @@ const Dashboard = () => {
         const containerRect = containerRef.current.getBoundingClientRect();
         setBounds({
           left: 0,
-          right: window.innerWidth - containerRect.width - 190, 
-          top: 0,
-          bottom: containerRect.height, 
+          right: window.innerWidth - containerRect.width - 190,
+          top: -500,
+          bottom: containerRect.height,
         });
       }
-     
     };
 
     updateBounds();
@@ -59,6 +58,7 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', updateBounds);
   }, [data.length]);
 
+  const [zIndex, setZIndex] = useState(1); // State to manage z-index
 
   const handleInputChange = (event, name) => {
     const { value } = event.target;
@@ -108,51 +108,50 @@ const Dashboard = () => {
     setShowLoading(true);
     await fetchData();
     clearInputValue();
-   
   };
+
   const clearInputValue = () => {
     setPromptText((prevState) => ({
       ...prevState,
       inputValue: '',
     }));
   };
+
   const handleDelete = (id) => {
     const updatedData = data
       .map((item) => item.filter((e) => e.uuid !== id))
       .filter((item) => item.length > 0);
     setData(updatedData);
   };
+
   const downloadPDF = async () => {
     const input = document.getElementById('dashboard-content');
     const canvas = await html2canvas(input);
     const imgData = canvas.toDataURL('image/png');
-  
-  
+
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    
-   
-    const maxImgWidth = screenWidth - 10; 
-  
 
-    const imgWidth = Math.min(210, maxImgWidth); 
+    const maxImgWidth = screenWidth - 10;
+
+    const imgWidth = Math.min(210, maxImgWidth);
     const imgHeight = canvas.height * imgWidth / canvas.width;
-  
+
     // Initialize PDF document
     const pdf = new jsPDF({
-      orientation: 'landscape', 
-      unit: 'mm', 
-      format: [imgWidth, imgHeight] 
+      orientation: 'landscape',
+      unit: 'mm',
+      format: [imgWidth, imgHeight],
     });
-  
-    const marginTop = 5; 
-    const marginLeft = 0; 
-    
+
+    const marginTop = 5;
+    const marginLeft = 0;
+
     const xPos = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
-    let yPos = marginTop; 
-  
+    let yPos = marginTop;
+
     pdf.addImage(imgData, 'PNG', xPos + marginLeft, yPos, imgWidth, imgHeight);
-  
+
     let remainingHeight = pdf.internal.pageSize.getHeight() - yPos - imgHeight;
     let currentPage = 1;
 
@@ -163,11 +162,16 @@ const Dashboard = () => {
       pdf.addImage(imgData, 'PNG', xPos + marginLeft, yPos, imgWidth, imgHeight);
       remainingHeight = pdf.internal.pageSize.getHeight() - yPos - imgHeight;
     }
-  
+
     // Save PDF
     pdf.save('dashboard.pdf');
   };
-  
+
+  const handleDragStart = () => {
+    // Increase zIndex when dragging starts
+    setZIndex((prevZIndex) => prevZIndex + 1);
+  };
+
   return (
     <Box>
       <ToastContainer />
@@ -179,7 +183,6 @@ const Dashboard = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-      
         }}
       >
         <Typography variant="h1" fontSize={'28px'} py={2} fontWeight={600}>
@@ -266,65 +269,67 @@ const Dashboard = () => {
                     defaultPosition={{ x: 0, y: 0 }}
                     position={null}
                     scale={1}
-                    bounds={bounds}  
+                    bounds={bounds}
+                    onStart={handleDragStart} // Increase zIndex on drag start
+                    zIndex={innerIndex === 0 ? zIndex : undefined} // Set zIndex for the top item
                   >
                     <Box className="handle">
                       {promptText.selectedValue === 'Pie-Chart' ||
-                      chartType[innerItem.uuid] === 'Pie-Chart' ? (
-                        <PieChartComponent
-                          data={innerItem}
-                          key={innerIndex}
-                          id={innerItem.uuid}
-                          handleDelete={handleDelete}
-                          handleInsideSelect={handleInsideSelect}
-                          optionData={optionData}
-                          chartType={chartType[innerItem.uuid]}
-                        />
-                      ) : (promptText.selectedValue === 'Bar-Chart' ||
+                        chartType[innerItem.uuid] === 'Pie-Chart' ? (
+                          <PieChartComponent
+                            data={innerItem}
+                            key={innerIndex}
+                            id={innerItem.uuid}
+                            handleDelete={handleDelete}
+                            handleInsideSelect={handleInsideSelect}
+                            optionData={optionData}
+                            chartType={chartType[innerItem.uuid]}
+                          />
+                        ) : (promptText.selectedValue === 'Bar-Chart' ||
                           chartType[innerItem.uuid] === 'Bar-Chart') ? (
-                        <BarChartCom
-                          data={innerItem}
-                          id={innerItem.uuid}
-                          handleDelete={handleDelete}
-                          handleInsideSelect={handleInsideSelect}
-                          optionData={optionData}
-                          chartType={chartType[innerItem.uuid]}
-                        />
-                      ) : (
-                        (promptText.selectedValue === 'Table' ||
-                          chartType[innerItem.uuid] === 'Table') && (
-                          Object.keys(innerItem).map((key) => {
-                            if (key !== 'uuid') {
-                              return (
-                                <Box
-                                  key={key}
-                                  my={4}
-                                  maxWidth={'1200px'}
-                                  mx={'auto'}
-                                >
-                                  <Typography
-                                    variant="h2"
-                                    fontSize={'24px'}
-                                    fontWeight={'600'}
-                                    pb={2}
-                                  >
-                                    {key}
-                                  </Typography>
-                                  <TableChart
-                                    userData={innerItem[key]}
-                                    id={innerItem.uuid}
-                                    handleDelete={handleDelete}
-                                    handleInsideSelect={handleInsideSelect}
-                                    optionData={optionData}
-                                    chartType={chartType[innerItem.uuid]}
-                                  />
-                                </Box>
-                              );
-                            }
-                            return null;
-                          })
-                        )
-                      )}
+                            <BarChartCom
+                              data={innerItem}
+                              id={innerItem.uuid}
+                              handleDelete={handleDelete}
+                              handleInsideSelect={handleInsideSelect}
+                              optionData={optionData}
+                              chartType={chartType[innerItem.uuid]}
+                            />
+                          ) : (
+                            (promptText.selectedValue === 'Table' ||
+                              chartType[innerItem.uuid] === 'Table') && (
+                                Object.keys(innerItem).map((key) => {
+                                  if (key !== 'uuid') {
+                                    return (
+                                      <Box
+                                        key={key}
+                                        my={4}
+                                        maxWidth={'1200px'}
+                                        mx={'auto'}
+                                      >
+                                        <Typography
+                                          variant="h2"
+                                          fontSize={'24px'}
+                                          fontWeight={'600'}
+                                          pb={2}
+                                        >
+                                          {key}
+                                        </Typography>
+                                        <TableChart
+                                          userData={innerItem[key]}
+                                          id={innerItem.uuid}
+                                          handleDelete={handleDelete}
+                                          handleInsideSelect={handleInsideSelect}
+                                          optionData={optionData}
+                                          chartType={chartType[innerItem.uuid]}
+                                        />
+                                      </Box>
+                                    );
+                                  }
+                                  return null;
+                                })
+                              )
+                          )}
                     </Box>
                   </Draggable>
                 ))}
